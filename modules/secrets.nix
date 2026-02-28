@@ -20,4 +20,8 @@ in
       home.packages = [ pkgs.sops ];
     };
   };
+
+  nixi.persist.directories = [
+    "/var/lib/sops"
+  ];
 }

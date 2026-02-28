@@ -1,4 +1,4 @@
-{ __findFile, ... }:
+{ inputs, lib, den, __findFile, ... }:
 
 {
   # Supported system architectures.
@@ -8,19 +8,32 @@
 
   den.aspects.shiina = {
     includes = [
+      <nixi/network>
+      <nixi/battery>
+
       <nixi/secrets>
+      <nixi/persist>
       <nixi/keyboard>
     ];
 
-    nixos = { ... }: {
-      system.stateVersion = "25.05";
+    nixos = { config, ... }: {
+      imports = [
+        inputs.disko.nixosModules.disko
 
-      networking.hostName = "shiina";
-      networking.networkmanager.enable = true;
+        ./_config
+      ];
 
-      services = {
-        upower.enable = true;
+      sops.secrets."hosts/shiina/ssh/host_ed25519_key" = {
+        sopsFile = ../../../secrets/hosts/shiina.yaml;
       };
+
+      services.openssh.hostKeys = [
+        { path = config.sops.secrets."hosts/shiina/ssh/host_ed25519_key".path;
+          type = "ed25519";
+        }
+      ];
+
+      system.stateVersion = "25.05";
     };
   };
 }

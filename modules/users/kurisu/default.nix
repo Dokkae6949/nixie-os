@@ -5,19 +5,18 @@
 
   den.aspects.kurisu = {
     includes = [
-      <nixi/secrets>
     ];
 
     nixos = { pkgs, config, ... }: {
-      sops.secrets.kurisu = {
-        sopsFile = ../../secrets/kurisu.yaml;
+      sops.secrets."users/kurisu/password_hash" = {
+        sopsFile = ../../../secrets/users/kurisu.yaml;
         neededForUsers = true;
       };
 
       users.mutableUsers = false;
       users.users.kurisu = {
         isNormalUser = true;
-        passwordFile = config.sops.secrets.kurisu.password_hash.path;
+        hashedPasswordFile = config.sops.secrets."users/kurisu/password_hash".path;
 
         shell = pkgs.fish;
 
