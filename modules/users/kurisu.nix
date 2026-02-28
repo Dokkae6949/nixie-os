@@ -8,10 +8,17 @@
       <nixi/secrets>
     ];
 
-    nixos = { pkgs, ... }: {
+    nixos = { pkgs, config, ... }: {
+      sops.secrets.kurisu = {
+        sopsFile = ../../secrets/kurisu.yaml;
+        neededForUsers = true;
+      };
+
+      users.mutableUsers = false;
       users.users.kurisu = {
         isNormalUser = true;
-        initialPassword = "12341234";
+        passwordFile = config.sops.secrets.kurisu.password_hash.path;
+
         shell = pkgs.fish;
 
         extraGroups = [ "wheel" ];

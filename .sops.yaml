@@ -1,0 +1,15 @@
+keys:
+  - &evergarden_kurisu age154ausyv0u0lscdxlurm29wnktw0w694z6q87xnd5l5laj2xrp98qrkxc74
+
+  - &shiina age1kwy5h88r0yftk2vxfga684kwj9y6lgh9n3yl92cz5yatun7jdf3sjt6623
+  - &shiina_kurisu age1qyf4mggsysyv5njtmk8pvrmf56l82qysxxkrfawaqa80l0ewhvtqt5367q
+
+creation_rules:
+  - path_regex: secrets/users/kurisu.yaml
+    key_groups:
+      - age:
+          # Users
+          - *evergarden_kurisu
+          - *shiina_kurisu
+          # Hosts
+          - *shiina
