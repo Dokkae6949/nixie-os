@@ -13,6 +13,10 @@
         neededForUsers = true;
       };
 
+      sops.secrets."users/kurisu/ssh/id_ed25519" = {
+        sopsFile = ../../../secrets/users/kurisu.yaml;
+      };
+
       users.mutableUsers = false;
       users.users.kurisu = {
         isNormalUser = true;
