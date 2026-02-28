@@ -2,12 +2,8 @@
 
 {
   boot.initrd.postDeviceCommands = lib.mkAfter ''
-    set -euo pipefail
-
-    dev=$(readlink -f /dev/disk/by-label/nixos)
-
     mkdir /btrfs_tmp
-    mount "$dev" /btrfs_tmp
+    mount /dev/disk/by-label/nixos /btrfs_tmp
 
     if [[ -e /btrfs_tmp/root ]]; then
         mkdir -p /btrfs_tmp/roots.old
