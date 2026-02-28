@@ -11,6 +11,7 @@
       <nixi/network>
       <nixi/battery>
 
+      <nixi/niri>
       <nixi/secrets>
       <nixi/persist>
       <nixi/keyboard>
