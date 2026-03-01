@@ -19,9 +19,6 @@
     };
 
     nixos = { config, lib, inputs, ... }: {
-      # imports must be unconditional — the option declarations from impermanence
-      # (e.g. environment.persistence) must exist even when persist is disabled,
-      # otherwise any mkIf-gated definition of them causes "option does not exist".
       imports = [ inputs.impermanence.nixosModules.impermanence ];
 
       fileSystems."/.persist".neededForBoot =
