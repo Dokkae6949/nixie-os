@@ -1,12 +1,10 @@
-{ lib, ... }:
+{ ... }:
 
 {
   nixie.niri = {
-    options = {
-      enable = lib.mkEnableOption "niri Wayland compositor";
-    };
+    description = "niri Wayland compositor";
 
-    nixos = { config, lib, inputs, pkgs, ... }: lib.mkIf config.nixie.niri.enable {
+    nixos = { inputs, pkgs, ... }: {
       nixpkgs.overlays = [ inputs.niri.overlays.niri ];
 
       programs.niri = {

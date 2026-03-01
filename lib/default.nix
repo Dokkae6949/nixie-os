@@ -1,10 +1,13 @@
 # The dendritic library — a flake-parts module providing the `nixie` namespace.
 #
-# Feature API (same as before — user is happy with this):
+# Feature API:
 #   nixie.<name> = {
-#     options = { ... };   # NixOS option declarations, globally available in all configs
-#     nixos   = { ... };   # NixOS module, applied when nixie.<name>.enable = true
-#     home    = { ... };   # home-manager module, added to sharedModules for all users
+#     description    = "short description";   # library auto-generates `enable` and auto-gates bodies
+#     options        = { ... };               # extra NixOS option declarations under options.nixie.<name>
+#     nixosImports   = [ ... ];               # NixOS modules always imported unconditionally
+#     nixos          = { ... };               # NixOS body — auto-gated by enable when description is set
+#     homeImports    = [ ... ];               # home-manager modules always imported unconditionally
+#     home           = { ... };               # home body — auto-gated by enable when description is set
 #   };
 #
 # User API:
@@ -34,10 +37,20 @@ let
   # Feature/module type — unchanged from before.
   featureType = types.submodule {
     options = {
+      description = mkOption {
+        type    = types.nullOr types.str;
+        default = null;
+        description = ''
+          Short feature description. When set, the library automatically:
+          1. Generates `enable = lib.mkEnableOption description` under options.nixie.<name>.
+          2. Gates the nixos body with `lib.mkIf config.nixie.<name>.enable`.
+          3. Gates the home body with `lib.mkIf (osConfig.nixie.<name>.enable or false)`.
+        '';
+      };
       options = mkOption {
         type    = types.anything;
         default = { };
-        description = "NixOS option declarations placed under options.nixie.<name>.";
+        description = "Additional NixOS option declarations placed under options.nixie.<name>.";
       };
       nixosImports = mkOption {
         type    = types.listOf types.raw;
@@ -51,7 +64,7 @@ let
       nixos = mkOption {
         type    = types.nullOr types.raw;
         default = null;
-        description = "NixOS module for this feature.";
+        description = "NixOS module body. Auto-gated by enable when description is set.";
       };
       homeImports = mkOption {
         type    = types.listOf types.raw;
@@ -64,7 +77,7 @@ let
       home = mkOption {
         type    = types.nullOr types.raw;
         default = null;
-        description = "home-manager module added to sharedModules for all users.";
+        description = "home-manager module body. Auto-gated by enable when description is set.";
       };
     };
   };
@@ -128,11 +141,15 @@ let
   getFeatures = nixie:
     lib.filterAttrs (n: _: !lib.elem n [ "users" "hosts" ]) nixie;
 
-  # Build a NixOS module that declares options.nixie.<name> for each feature with options.
+  # Build a NixOS module that declares options.nixie.<name> for each feature.
+  # When description is set the library auto-generates `enable = lib.mkEnableOption description`.
   mkGlobalOptionsModule = features:
-    let withOptions = lib.filterAttrs (_: f: f.options != { }) features;
+    let withOpts = lib.filterAttrs (_: f: f.options != { } || f.description != null) features;
     in { lib, ... }: {
-      options.nixie = lib.mapAttrs (_: f: f.options) withOptions;
+      options.nixie = lib.mapAttrs (_: f:
+        (lib.optionalAttrs (f.description != null) { enable = lib.mkEnableOption f.description; })
+        // f.options
+      ) withOpts;
     };
 
   mkNixosModules = features:
@@ -141,10 +158,18 @@ let
       # can freely use lib.mkIf without worrying about imports ordering.
       allNixosImports = lib.concatLists (lib.mapAttrsToList (_: f: f.nixosImports) features);
       importsModule   = lib.optional (allNixosImports != []) { imports = allNixosImports; };
+      # When description is set, wrap the nixos body with the enable guard automatically
+      # so feature authors don't need to write lib.mkIf config.nixie.<name>.enable manually.
+      autoGate = name: f: mod:
+        if f.description == null then mod
+        else args@{ config, lib, ... }:
+          lib.mkIf config.nixie.${name}.enable (
+            if lib.isFunction mod then mod args else mod
+          );
     in
     importsModule
-    ++ lib.concatLists (lib.mapAttrsToList (_: f:
-      lib.optional (f.nixos != null) f.nixos
+    ++ lib.concatLists (lib.mapAttrsToList (name: f:
+      lib.optional (f.nixos != null) (autoGate name f f.nixos)
     ) features);
 
   mkHomeModules = features:
@@ -152,10 +177,18 @@ let
       # Same pattern for homeImports — lifted into one unconditional sharedModule.
       allHomeImports = lib.concatLists (lib.mapAttrsToList (_: f: f.homeImports) features);
       importsModule  = lib.optional (allHomeImports != []) { imports = allHomeImports; };
+      # When description is set, wrap the home body with the enable guard automatically.
+      # Uses `or false` to gracefully handle cases where the NixOS option doesn't exist.
+      autoGate = name: f: mod:
+        if f.description == null then mod
+        else args@{ osConfig, lib, ... }:
+          lib.mkIf (osConfig.nixie.${name}.enable or false) (
+            if lib.isFunction mod then mod args else mod
+          );
     in
     importsModule
-    ++ lib.concatLists (lib.mapAttrsToList (_: f:
-      lib.optional (f.home != null) f.home
+    ++ lib.concatLists (lib.mapAttrsToList (name: f:
+      lib.optional (f.home != null) (autoGate name f f.home)
     ) features);
 
   # Build a nixosSystem for one host entry.

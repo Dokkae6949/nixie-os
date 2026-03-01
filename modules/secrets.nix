@@ -1,4 +1,4 @@
-{ lib, inputs, ... }:
+{ inputs, ... }:
 
 let
   sopsConfig = {
@@ -9,13 +9,11 @@ let
 in
 {
   nixie.secrets = {
-    options = {
-      enable = lib.mkEnableOption "sops-nix secret management";
-    };
+    description = "sops-nix secret management";
 
     nixosImports = [ inputs.sops-nix.nixosModules.sops ];
 
-    nixos = { config, lib, ... }: lib.mkIf config.nixie.secrets.enable {
+    nixos = { ... }: {
       sops = sopsConfig;
 
       # Persist the sops age key across ephemeral reboots.
@@ -24,7 +22,7 @@ in
 
     homeImports = [ inputs.sops-nix.homeManagerModules.sops ];
 
-    home = { osConfig, lib, pkgs, ... }: lib.mkIf (osConfig.nixie.secrets.enable or false) {
+    home = { pkgs, ... }: {
       sops = sopsConfig;
 
       home.packages = [ pkgs.sops ];

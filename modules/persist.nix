@@ -2,9 +2,9 @@
 
 {
   nixie.persist = {
-    options = {
-      enable = lib.mkEnableOption "impermanence (ephemeral root)";
+    description = "impermanence (ephemeral root)";
 
+    options = {
       directories = lib.mkOption {
         type        = lib.types.listOf lib.types.str;
         default     = [ ];
@@ -20,7 +20,7 @@
 
     nixosImports = [ inputs.impermanence.nixosModules.impermanence ];
 
-    nixos = { config, lib, ... }: lib.mkIf config.nixie.persist.enable {
+    nixos = { config, lib, ... }: {
       fileSystems."/.persist".neededForBoot = lib.mkDefault true;
 
       environment.persistence."/.persist" = {

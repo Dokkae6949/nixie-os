@@ -1,12 +1,10 @@
-{ lib, ... }:
+{ ... }:
 
 {
   nixie.network = {
-    options = {
-      enable = lib.mkEnableOption "NetworkManager networking";
-    };
+    description = "NetworkManager networking";
 
-    nixos = { config, lib, ... }: lib.mkIf config.nixie.network.enable {
+    nixos = { ... }: {
       networking.networkmanager.enable = true;
 
       nixie.persist.directories = [ "/etc/NetworkManager/system-connections" ];

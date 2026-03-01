@@ -1,12 +1,10 @@
-{ lib, ... }:
+{ ... }:
 
 {
   nixie.battery = {
-    options = {
-      enable = lib.mkEnableOption "battery management (upower)";
-    };
+    description = "battery management (upower)";
 
-    nixos = { config, lib, ... }: lib.mkIf config.nixie.battery.enable {
+    nixos = { ... }: {
       services.upower.enable = true;
     };
   };
