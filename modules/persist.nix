@@ -5,7 +5,6 @@
     options = {
       enable = lib.mkEnableOption "impermanence (ephemeral root)";
 
-      # Other modules append to these lists to persist their own paths.
       directories = lib.mkOption {
         type        = lib.types.listOf lib.types.str;
         default     = [ ];
@@ -19,25 +18,23 @@
       };
     };
 
-    nixos = { config, lib, inputs, ... }: {
+    nixos = { config, lib, inputs, ... }: lib.mkIf config.nixie.persist.enable {
       imports = [ inputs.impermanence.nixosModules.impermanence ];
 
-      environment.persistence."/.persist" = lib.mkIf config.nixie.persist.enable {
+      fileSystems."/.persist".neededForBoot = lib.mkDefault true;
+
+      environment.persistence."/.persist" = {
         hideMounts = true;
 
-        directories =
-          [ "/etc/nixos"
-            "/etc/NetworkManager/system-connections"
-            "/var/lib/nixos"
-          ] ++ config.nixie.persist.directories;
+        directories = [
+          "/etc/nixos"
+          "/var/lib/nixos"
+        ] ++ config.nixie.persist.directories;
 
-        files =
-          [ "/etc/machine-id"
-          ] ++ config.nixie.persist.files;
+        files = [
+          "/etc/machine-id"
+        ] ++ config.nixie.persist.files;
       };
-
-      fileSystems."/.persist".neededForBoot =
-        lib.mkIf config.nixie.persist.enable (lib.mkDefault true);
     };
   };
 }

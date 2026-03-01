@@ -22,13 +22,12 @@ in
       nixie.persist.directories = [ "/var/lib/sops" ];
     };
 
-    home = { osConfig, lib, inputs, pkgs, ... }:
-      lib.mkIf (osConfig.nixie.secrets.enable or false) {
-        imports = [ inputs.sops-nix.homeManagerModules.sops ];
+    home = { osConfig, lib, inputs, pkgs, ... }: lib.mkIf (osConfig.nixie.secrets.enable or false) {
+      imports = [ inputs.sops-nix.homeManagerModules.sops ];
 
-        sops = sopsConfig;
+      sops = sopsConfig;
 
-        home.packages = [ pkgs.sops ];
-      };
+      home.packages = [ pkgs.sops ];
+    };
   };
 }
