@@ -154,7 +154,7 @@ let
         home-manager = {
           useGlobalPkgs    = true;
           useUserPackages  = true;
-          extraSpecialArgs = { inherit inputs lib; };
+          extraSpecialArgs = { inherit inputs; };
           # Feature home modules + host-level home defaults (host should use mkDefault).
           sharedModules =
             featHome
