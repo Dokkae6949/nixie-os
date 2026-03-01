@@ -1,13 +1,18 @@
 # The dendritic library — a flake-parts module providing the `nixie` namespace.
 #
+# Inspired by vic/den and vic/flake-aspects: features are plain modules, activated
+# by listing them in the host's `features` field. No per-feature enable options,
+# no lib.mkIf gating, no separate nixosImports/homeImports needed.
+#
 # Feature API:
 #   nixie.<name> = {
-#     description    = "short description";   # library auto-generates `enable` and auto-gates bodies
-#     options        = { ... };               # extra NixOS option declarations under options.nixie.<name>
-#     nixosImports   = [ ... ];               # NixOS modules always imported unconditionally
-#     nixos          = { ... };               # NixOS body — auto-gated by enable when description is set
-#     homeImports    = [ ... ];               # home-manager modules always imported unconditionally
-#     home           = { ... };               # home body — auto-gated by enable when description is set
+#     description = "short description";  # documentation only
+#     options     = { ... };              # extra NixOS option declarations under options.nixie.<name>
+#     nixos       = { config, pkgs, ... }: {
+#       imports = [ ... ];                # unconditional — just works, no special handling needed
+#       services.foo.enable = true;       # body is included as-is when the feature is active
+#     };
+#     home        = { pkgs, ... }: { ... };  # home-manager module, applied via sharedModules
 #   };
 #
 # User API:
@@ -19,10 +24,11 @@
 # Host API:
 #   nixie.hosts.<name> = {
 #     system       = "x86_64-linux";
-#     users        = [ "alice" "bob" ];   # enrolled users (or users enroll themselves)
-#     nixos        = { ... };             # host NixOS module (takes priority over user nixos)
-#     home         = { ... };             # home defaults for all users (use lib.mkDefault)
-#     extraModules = [ ... ];             # additional NixOS modules
+#     features     = [ "battery" "network" "persist" ];  # activates listed feature modules
+#     users        = [ "alice" "bob" ];  # enrolled users
+#     nixos        = { ... };            # host NixOS module (takes priority over user nixos)
+#     home         = { ... };            # home defaults for all users (use lib.mkDefault)
+#     extraModules = [ ... ];            # additional NixOS modules
 #   };
 #
 # Hosts are automatically added to flake.nixosConfigurations.
@@ -34,50 +40,35 @@ let
 
   # ── Types ────────────────────────────────────────────────────────────────
 
-  # Feature/module type — unchanged from before.
+  # Feature type — plain module containers, activated by listing in host.features.
+  # Inspired by den/flake-aspects: no enable options, no gating, imports just work.
   featureType = types.submodule {
     options = {
       description = mkOption {
         type    = types.nullOr types.str;
         default = null;
-        description = ''
-          Short feature description. When set, the library automatically:
-          1. Generates `enable = lib.mkEnableOption description` under options.nixie.<name>.
-          2. Gates the nixos body with `lib.mkIf config.nixie.<name>.enable`.
-          3. Gates the home body with `lib.mkIf (osConfig.nixie.<name>.enable or false)`.
-        '';
+        description = "Short feature description (documentation only).";
       };
       options = mkOption {
         type    = types.anything;
         default = { };
-        description = "Additional NixOS option declarations placed under options.nixie.<name>.";
-      };
-      nixosImports = mkOption {
-        type    = types.listOf types.raw;
-        default = [ ];
-        description = ''
-          NixOS modules always imported unconditionally (e.g. external modules that declare
-          options required by the nixos body). The library lifts these out so the nixos body
-          can freely use lib.mkIf without worrying about the "imports must be unconditional" rule.
-        '';
+        description = "Extra NixOS option declarations placed under options.nixie.<name>.";
       };
       nixos = mkOption {
         type    = types.nullOr types.raw;
         default = null;
-        description = "NixOS module body. Auto-gated by enable when description is set.";
-      };
-      homeImports = mkOption {
-        type    = types.listOf types.raw;
-        default = [ ];
         description = ''
-          home-manager modules always imported unconditionally into sharedModules.
-          Same idea as nixosImports but for home-manager.
+          NixOS module for this feature. Included as-is when the feature is listed in
+          host.features — no conditional gating. imports inside the body work naturally.
         '';
       };
       home = mkOption {
         type    = types.nullOr types.raw;
         default = null;
-        description = "home-manager module body. Auto-gated by enable when description is set.";
+        description = ''
+          home-manager module for this feature. Added to sharedModules when the feature is
+          listed in host.features — no conditional gating.
+        '';
       };
     };
   };
@@ -108,6 +99,15 @@ let
         type    = types.str;
         default = "x86_64-linux";
         description = "Target system architecture.";
+      };
+      features = mkOption {
+        type    = types.listOf types.str;
+        default = [ ];
+        description = ''
+          Feature names (from nixie.<name>) to activate on this host.
+          Only listed features have their nixos/home modules included in the system.
+          Inspired by den/flake-aspects: activation via inclusion, not per-feature enable options.
+        '';
       };
       users = mkOption {
         type    = types.listOf types.str;
@@ -141,66 +141,42 @@ let
   getFeatures = nixie:
     lib.filterAttrs (n: _: !lib.elem n [ "users" "hosts" ]) nixie;
 
-  # Build a NixOS module that declares options.nixie.<name> for each feature.
-  # When description is set the library auto-generates `enable = lib.mkEnableOption description`.
+  # Filter features to only those activated by the host's features list.
+  getActiveFeatures = hostCfg: features:
+    lib.filterAttrs (n: _: lib.elem n hostCfg.features) features;
+
+  # Build a NixOS module that declares options.nixie.<name> for features with extra options.
+  # No enable option is auto-generated — the den-inspired approach uses the features list instead.
   mkGlobalOptionsModule = features:
-    let withOpts = lib.filterAttrs (_: f: f.options != { } || f.description != null) features;
-    in { lib, ... }: {
-      options.nixie = lib.mapAttrs (_: f:
-        (lib.optionalAttrs (f.description != null) { enable = lib.mkEnableOption f.description; })
-        // f.options
-      ) withOpts;
-    };
+    let withOpts = lib.filterAttrs (_: f: f.options != { }) features;
+    in if withOpts == {} then {}
+       else { lib, ... }: {
+         options.nixie = lib.mapAttrs (_: f: f.options) withOpts;
+       };
 
-  mkNixosModules = features:
-    let
-      # Collect all nixosImports into one unconditional module so feature bodies
-      # can freely use lib.mkIf without worrying about imports ordering.
-      allNixosImports = lib.concatLists (lib.mapAttrsToList (_: f: f.nixosImports) features);
-      importsModule   = lib.optional (allNixosImports != []) { imports = allNixosImports; };
-      # When description is set, wrap the nixos body with the enable guard automatically
-      # so feature authors don't need to write lib.mkIf config.nixie.<name>.enable manually.
-      autoGate = name: f: mod:
-        if f.description == null then mod
-        else args@{ config, lib, ... }:
-          lib.mkIf config.nixie.${name}.enable (
-            if lib.isFunction mod then mod args else mod
-          );
-    in
-    importsModule
-    ++ lib.concatLists (lib.mapAttrsToList (name: f:
-      lib.optional (f.nixos != null) (autoGate name f f.nixos)
-    ) features);
+  # Collect NixOS modules for active features — no gating, modules included as-is.
+  mkNixosModules = activeFeatures:
+    lib.concatLists (lib.mapAttrsToList (_: f:
+      lib.optional (f.nixos != null) f.nixos
+    ) activeFeatures);
 
-  mkHomeModules = features:
-    let
-      # Same pattern for homeImports — lifted into one unconditional sharedModule.
-      allHomeImports = lib.concatLists (lib.mapAttrsToList (_: f: f.homeImports) features);
-      importsModule  = lib.optional (allHomeImports != []) { imports = allHomeImports; };
-      # When description is set, wrap the home body with the enable guard automatically.
-      # Uses `or false` to gracefully handle cases where the NixOS option doesn't exist.
-      autoGate = name: f: mod:
-        if f.description == null then mod
-        else args@{ osConfig, lib, ... }:
-          lib.mkIf (osConfig.nixie.${name}.enable or false) (
-            if lib.isFunction mod then mod args else mod
-          );
-    in
-    importsModule
-    ++ lib.concatLists (lib.mapAttrsToList (name: f:
-      lib.optional (f.home != null) (autoGate name f f.home)
-    ) features);
+  # Collect home-manager sharedModules for active features — no gating, included as-is.
+  mkHomeModules = activeFeatures:
+    lib.concatLists (lib.mapAttrsToList (_: f:
+      lib.optional (f.home != null) f.home
+    ) activeFeatures);
 
   # Build a nixosSystem for one host entry.
   mkHostSystem = _hostName: hostCfg:
     let
-      features  = getFeatures config.nixie;
-      allUsers  = config.nixie.users;
-      hostUsers = lib.filterAttrs (n: _: lib.elem n hostCfg.users) allUsers;
+      features       = getFeatures config.nixie;
+      activeFeatures = getActiveFeatures hostCfg features;
+      allUsers       = config.nixie.users;
+      hostUsers      = lib.filterAttrs (n: _: lib.elem n hostCfg.users) allUsers;
 
       globalOpts = mkGlobalOptionsModule features;
-      featNixos  = mkNixosModules features;
-      featHome   = mkHomeModules features;
+      featNixos  = mkNixosModules activeFeatures;
+      featHome   = mkHomeModules activeFeatures;
 
       # User NixOS modules — included before the host nixos module so that
       # host settings naturally take priority (later modules win on conflicts).
@@ -231,7 +207,8 @@ let
       inherit (hostCfg) system;
       specialArgs = { inherit inputs lib; };
       modules =
-        [ globalOpts hmModule ]
+        lib.optional (globalOpts != {}) globalOpts
+        ++ [ hmModule ]
         ++ featNixos
         ++ userNixos                                              # user nixos (defaults)
         ++ lib.optional (hostCfg.nixos != null) hostCfg.nixos    # host nixos (authoritative)

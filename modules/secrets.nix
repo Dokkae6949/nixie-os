@@ -11,18 +11,18 @@ in
   nixie.secrets = {
     description = "sops-nix secret management";
 
-    nixosImports = [ inputs.sops-nix.nixosModules.sops ];
-
     nixos = { ... }: {
+      imports = [ inputs.sops-nix.nixosModules.sops ];
+
       sops = sopsConfig;
 
       # Persist the sops age key across ephemeral reboots.
       nixie.persist.directories = [ "/var/lib/sops" ];
     };
 
-    homeImports = [ inputs.sops-nix.homeManagerModules.sops ];
-
     home = { pkgs, ... }: {
+      imports = [ inputs.sops-nix.homeManagerModules.sops ];
+
       sops = sopsConfig;
 
       home.packages = [ pkgs.sops ];

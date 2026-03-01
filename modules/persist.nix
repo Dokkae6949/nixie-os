@@ -18,9 +18,9 @@
       };
     };
 
-    nixosImports = [ inputs.impermanence.nixosModules.impermanence ];
-
     nixos = { config, lib, ... }: {
+      imports = [ inputs.impermanence.nixosModules.impermanence ];
+
       fileSystems."/.persist".neededForBoot = lib.mkDefault true;
 
       environment.persistence."/.persist" = {

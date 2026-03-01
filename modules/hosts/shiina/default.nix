@@ -2,21 +2,15 @@
 
 {
   nixie.hosts.shiina = {
-    system = "x86_64-linux";
-    users  = [ "kurisu" ];
+    system   = "x86_64-linux";
+    features = [ "battery" "keyboard" "network" "niri" "persist" "secrets" ];
+    users    = [ "kurisu" ];
 
     nixos = { config, ... }: {
       imports = [
         inputs.disko.nixosModules.disko
         ./_config
       ];
-
-      nixie.battery.enable = true;
-      nixie.keyboard.enable = true;
-      nixie.network.enable = true;
-      nixie.niri.enable = true;
-      nixie.persist.enable = true;
-      nixie.secrets.enable = true;
 
       sops.secrets."hosts/shiina/ssh/host_ed25519_key" = {
         sopsFile = ../../../secrets/hosts/shiina.yaml;
