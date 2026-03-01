@@ -62,6 +62,9 @@
     },
     "impermanence": {
       "inputs": {
+        "home-manager": [
+          "home-manager"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
