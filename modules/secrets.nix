@@ -13,13 +13,16 @@ in
       enable = lib.mkEnableOption "sops-nix secret management";
     };
 
-    nixos = { config, lib, inputs, ... }: lib.mkIf config.nixie.secrets.enable {
+    nixos = { config, lib, inputs, ... }: {
+      # imports must be unconditional (same reason as persist.nix — options from
+      # sops-nix must be declared even when the feature is disabled).
       imports = [ inputs.sops-nix.nixosModules.sops ];
 
-      sops = sopsConfig;
+      sops = lib.mkIf config.nixie.secrets.enable sopsConfig;
 
       # Persist the sops age key across ephemeral reboots.
-      nixie.persist.directories = [ "/var/lib/sops" ];
+      nixie.persist.directories =
+        lib.mkIf config.nixie.secrets.enable [ "/var/lib/sops" ];
     };
 
     home = { osConfig, lib, inputs, pkgs, ... }: lib.mkIf (osConfig.nixie.secrets.enable or false) {
