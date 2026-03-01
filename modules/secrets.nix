@@ -25,12 +25,15 @@ in
         lib.mkIf config.nixie.secrets.enable [ "/var/lib/sops" ];
     };
 
-    home = { osConfig, lib, inputs, pkgs, ... }: lib.mkIf (osConfig.nixie.secrets.enable or false) {
+    home = { osConfig, lib, inputs, pkgs, ... }: {
+      # imports must be unconditional — options from sops-nix must be declared
+      # even when the feature is disabled, otherwise home-manager's module system
+      # tries to set `home-manager.users.<name>.imports` as a NixOS option path.
       imports = [ inputs.sops-nix.homeManagerModules.sops ];
 
-      sops = sopsConfig;
+      sops = lib.mkIf (osConfig.nixie.secrets.enable or false) sopsConfig;
 
-      home.packages = [ pkgs.sops ];
+      home.packages = lib.mkIf (osConfig.nixie.secrets.enable or false) [ pkgs.sops ];
     };
   };
 }
