@@ -1,65 +1,55 @@
-{ inputs, lib, den, __findFile, ... }:
+{ inputs, lib, dendritic, ... }:
 
 {
-  # Supported system architectures.
   systems = [ "x86_64-linux" ];
 
-  den.hosts.x86_64-linux.shiina = { };
+  flake.nixosConfigurations.shiina = dendritic.mkSystem {
+    system = "x86_64-linux";
 
-  den.aspects.shiina = {
-    includes = [
-      <nixi/network>
-      <nixi/battery>
+    extraModules = [
+      inputs.disko.nixosModules.disko
 
-      <nixi/niri>
-      <nixi/secrets>
-      <nixi/persist>
-      <nixi/keyboard>
-    ];
+      ./_config
 
-    nixos = { config, ... }: {
-      imports = [
-        inputs.disko.nixosModules.disko
+      ({ config, ... }: {
+        # ── Enabled features ────────────────────────────────────────────────
+        nixie.battery.enable      = true;
+        nixie.keyboard.enable     = true;
+        nixie.network.enable      = true;
+        nixie.niri.enable         = true;
+        nixie.persist.enable      = true;
+        nixie.secrets.enable      = true;
+        nixie.users-kurisu.enable = true;
 
-        ./_config
-      ];
-
-      sops.secrets."hosts/shiina/ssh/host_ed25519_key" = {
-        sopsFile = ../../../secrets/hosts/shiina.yaml;
-      };
-
-      services.openssh.hostKeys = [
-        { path = config.sops.secrets."hosts/shiina/ssh/host_ed25519_key".path;
-          type = "ed25519";
-        }
-      ];
-
-      nix = let
-        flakeInputs = lib.filterAttrs (_: lib.isType "flake") inputs;
-      in {
-        settings = {
-          # Enable flakes and new 'nix' command
-          experimental-features = "nix-command flakes";
-
-          # Opinionated: disable global registry
-          flake-registry = "";
-
-          trusted-users = ["root" "@wheel"];
+        # ── Host-specific secrets ────────────────────────────────────────────
+        sops.secrets."hosts/shiina/ssh/host_ed25519_key" = {
+          sopsFile = ../../../secrets/hosts/shiina.yaml;
         };
 
-        # Opinionated: disable channels
-        channel.enable = false;
+        services.openssh.hostKeys = [
+          { path = config.sops.secrets."hosts/shiina/ssh/host_ed25519_key".path;
+            type = "ed25519";
+          }
+        ];
 
-        # Opinionated: make flake registry and nix path match flake inputs
-        registry = lib.mapAttrs (_: flake: {inherit flake;}) flakeInputs;
-        nixPath = lib.mapAttrsToList (n: _: "${n}=flake:${n}") flakeInputs;
-      };
+        # ── Nix settings ─────────────────────────────────────────────────────
+        nix =
+          let flakeInputs = lib.filterAttrs (_: lib.isType "flake") inputs;
+          in {
+            settings = {
+              experimental-features = "nix-command flakes";
+              flake-registry          = "";
+              trusted-users           = [ "root" "@wheel" ];
+            };
 
-      system.stateVersion = "25.11";
-    };
+            channel.enable = false;
 
-    homeManager = { ... }: {
-      home.stateVersion = "25.11";
-    };
+            registry = lib.mapAttrs (_: flake: { inherit flake; }) flakeInputs;
+            nixPath  = lib.mapAttrsToList (n: _: "${n}=flake:${n}") flakeInputs;
+          };
+
+        system.stateVersion = "25.11";
+      })
+    ];
   };
 }

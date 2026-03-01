@@ -1,39 +1,43 @@
-{ lib, den, inputs, ... }:
+{ lib, ... }:
 
-let
-  persist = { class, aspect-chain }: den._.forward {
-    each = lib.singleton true;
-    fromClass = _: "persist";
-    intoClass = _: class;
-    intoPath = _: [ "environment" "persistence" "/.persist" ];
-    fromAspect = _: lib.head aspect-chain;
-    guard = { options, ... }: options ? environment.persistence;
-  };
-in
 {
-  nixi.aspects.persist = {
-    includes = [ persist ];
+  nixie.persist = {
+    options = {
+      enable = lib.mkEnableOption "impermanence (ephemeral root)";
 
-    nixos = { lib, ... }: {
-      imports = [ inputs.impermanence.nixosModules.impermanence ];
-
-      environment.persistence."/.persist" = {
-        hideMounts = true;
-
-        directories = [
-          "/etc/nixos"
-          "/etc/NetworkManager/system-connections"
-
-          "/var/lib/nixos"
-        ];
-
-        files = [
-          "/etc/machine-id"
-        ];
+      # Other modules append to these lists to persist their own paths.
+      directories = lib.mkOption {
+        type        = lib.types.listOf lib.types.str;
+        default     = [ ];
+        description = "Extra directories to persist across reboots.";
       };
 
-      # Make sure persisted storage is available before consumers use it.
-      fileSystems."/.persist".neededForBoot = lib.mkDefault true;
+      files = lib.mkOption {
+        type        = lib.types.listOf lib.types.str;
+        default     = [ ];
+        description = "Extra files to persist across reboots.";
+      };
+    };
+
+    nixos = { config, lib, inputs, ... }: {
+      imports = [ inputs.impermanence.nixosModules.impermanence ];
+
+      environment.persistence."/.persist" = lib.mkIf config.nixie.persist.enable {
+        hideMounts = true;
+
+        directories =
+          [ "/etc/nixos"
+            "/etc/NetworkManager/system-connections"
+            "/var/lib/nixos"
+          ] ++ config.nixie.persist.directories;
+
+        files =
+          [ "/etc/machine-id"
+          ] ++ config.nixie.persist.files;
+      };
+
+      fileSystems."/.persist".neededForBoot =
+        lib.mkIf config.nixie.persist.enable (lib.mkDefault true);
     };
   };
 }

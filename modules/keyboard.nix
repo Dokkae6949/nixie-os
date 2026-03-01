@@ -1,6 +1,12 @@
+{ lib, ... }:
+
 {
-  nixi.keyboard = {
-    nixos = { ... }: {
+  nixie.keyboard = {
+    options = {
+      enable = lib.mkEnableOption "keyboard remapping (keyd)";
+    };
+
+    nixos = { config, lib, ... }: lib.mkIf config.nixie.keyboard.enable {
       console.useXkbConfig = true;
 
       services = {

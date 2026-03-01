@@ -1,9 +1,13 @@
+{ lib, ... }:
+
 {
-  nixi.network = {
-    nixos = { ... }: {
-      networking.networkmanager = {
-        enable = true;
-      };
+  nixie.network = {
+    options = {
+      enable = lib.mkEnableOption "NetworkManager networking";
+    };
+
+    nixos = { config, lib, ... }: lib.mkIf config.nixie.network.enable {
+      networking.networkmanager.enable = true;
     };
   };
 }
