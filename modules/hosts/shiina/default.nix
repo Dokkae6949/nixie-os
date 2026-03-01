@@ -1,55 +1,55 @@
-{ inputs, lib, dendritic, ... }:
+{ inputs, lib, ... }:
 
 {
-  systems = [ "x86_64-linux" ];
-
-  flake.nixosConfigurations.shiina = dendritic.mkSystem {
+  nixie.hosts.shiina = {
     system = "x86_64-linux";
+    users  = [ "kurisu" ];
 
-    extraModules = [
-      inputs.disko.nixosModules.disko
+    nixos = { config, ... }: {
+      imports = [
+        inputs.disko.nixosModules.disko
+        ./_config
+      ];
 
-      ./_config
+      nixie.battery.enable  = true;
+      nixie.keyboard.enable = true;
+      nixie.network.enable  = true;
+      nixie.niri.enable     = true;
+      nixie.persist.enable  = true;
+      nixie.secrets.enable  = true;
 
-      ({ config, ... }: {
-        # ── Enabled features ────────────────────────────────────────────────
-        nixie.battery.enable      = true;
-        nixie.keyboard.enable     = true;
-        nixie.network.enable      = true;
-        nixie.niri.enable         = true;
-        nixie.persist.enable      = true;
-        nixie.secrets.enable      = true;
-        nixie.users-kurisu.enable = true;
+      sops.secrets."hosts/shiina/ssh/host_ed25519_key" = {
+        sopsFile = ../../../secrets/hosts/shiina.yaml;
+      };
 
-        # ── Host-specific secrets ────────────────────────────────────────────
-        sops.secrets."hosts/shiina/ssh/host_ed25519_key" = {
-          sopsFile = ../../../secrets/hosts/shiina.yaml;
+      services.openssh.hostKeys = [
+        { path = config.sops.secrets."hosts/shiina/ssh/host_ed25519_key".path;
+          type = "ed25519";
+        }
+      ];
+
+      nix = let
+        flakeInputs = lib.filterAttrs (_: lib.isType "flake") inputs;
+      in {
+        settings = {
+          experimental-features = "nix-command flakes";
+          flake-registry          = "";
+          trusted-users           = [ "root" "@wheel" ];
         };
 
-        services.openssh.hostKeys = [
-          { path = config.sops.secrets."hosts/shiina/ssh/host_ed25519_key".path;
-            type = "ed25519";
-          }
-        ];
+        channel.enable = false;
 
-        # ── Nix settings ─────────────────────────────────────────────────────
-        nix =
-          let flakeInputs = lib.filterAttrs (_: lib.isType "flake") inputs;
-          in {
-            settings = {
-              experimental-features = "nix-command flakes";
-              flake-registry          = "";
-              trusted-users           = [ "root" "@wheel" ];
-            };
+        registry = lib.mapAttrs (_: flake: { inherit flake; }) flakeInputs;
+        nixPath  = lib.mapAttrsToList (n: _: "${n}=flake:${n}") flakeInputs;
+      };
 
-            channel.enable = false;
+      system.stateVersion = "25.11";
+    };
 
-            registry = lib.mapAttrs (_: flake: { inherit flake; }) flakeInputs;
-            nixPath  = lib.mapAttrsToList (n: _: "${n}=flake:${n}") flakeInputs;
-          };
-
-        system.stateVersion = "25.11";
-      })
-    ];
+    # Home-manager defaults applied to every user on this host.
+    # Use lib.mkDefault for any value a user should be able to override.
+    home = { lib, ... }: {
+      home.stateVersion = lib.mkDefault "25.11";
+    };
   };
 }
