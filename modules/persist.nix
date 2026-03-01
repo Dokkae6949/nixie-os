@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, inputs, ... }:
 
 {
   nixie.persist = {
@@ -18,13 +18,12 @@
       };
     };
 
-    nixos = { config, lib, inputs, ... }: {
-      imports = [ inputs.impermanence.nixosModules.impermanence ];
+    nixosImports = [ inputs.impermanence.nixosModules.impermanence ];
 
-      fileSystems."/.persist".neededForBoot =
-        lib.mkIf config.nixie.persist.enable (lib.mkDefault true);
+    nixos = { config, lib, ... }: lib.mkIf config.nixie.persist.enable {
+      fileSystems."/.persist".neededForBoot = lib.mkDefault true;
 
-      environment.persistence."/.persist" = lib.mkIf config.nixie.persist.enable {
+      environment.persistence."/.persist" = {
         hideMounts = true;
 
         directories = [

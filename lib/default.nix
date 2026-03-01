@@ -39,10 +39,27 @@ let
         default = { };
         description = "NixOS option declarations placed under options.nixie.<name>.";
       };
+      nixosImports = mkOption {
+        type    = types.listOf types.raw;
+        default = [ ];
+        description = ''
+          NixOS modules always imported unconditionally (e.g. external modules that declare
+          options required by the nixos body). The library lifts these out so the nixos body
+          can freely use lib.mkIf without worrying about the "imports must be unconditional" rule.
+        '';
+      };
       nixos = mkOption {
         type    = types.nullOr types.raw;
         default = null;
         description = "NixOS module for this feature.";
+      };
+      homeImports = mkOption {
+        type    = types.listOf types.raw;
+        default = [ ];
+        description = ''
+          home-manager modules always imported unconditionally into sharedModules.
+          Same idea as nixosImports but for home-manager.
+        '';
       };
       home = mkOption {
         type    = types.nullOr types.raw;
@@ -119,12 +136,25 @@ let
     };
 
   mkNixosModules = features:
-    lib.concatLists (lib.mapAttrsToList (_: f:
+    let
+      # Collect all nixosImports into one unconditional module so feature bodies
+      # can freely use lib.mkIf without worrying about imports ordering.
+      allNixosImports = lib.concatLists (lib.mapAttrsToList (_: f: f.nixosImports) features);
+      importsModule   = lib.optional (allNixosImports != []) { imports = allNixosImports; };
+    in
+    importsModule
+    ++ lib.concatLists (lib.mapAttrsToList (_: f:
       lib.optional (f.nixos != null) f.nixos
     ) features);
 
   mkHomeModules = features:
-    lib.concatLists (lib.mapAttrsToList (_: f:
+    let
+      # Same pattern for homeImports — lifted into one unconditional sharedModule.
+      allHomeImports = lib.concatLists (lib.mapAttrsToList (_: f: f.homeImports) features);
+      importsModule  = lib.optional (allHomeImports != []) { imports = allHomeImports; };
+    in
+    importsModule
+    ++ lib.concatLists (lib.mapAttrsToList (_: f:
       lib.optional (f.home != null) f.home
     ) features);
 
@@ -182,10 +212,11 @@ in
   options.nixie = mkOption {
     default     = { };
     description = "Dendritic module registry.";
-    # freeformType lets nixie.<name> = { options, nixos, home } work for features,
-    # while 'users' and 'hosts' are declared as first-class typed sub-options.
+    # lazyAttrsOf avoids the deprecated functor.wrapped access path that
+    # types.attrsOf triggers in the module system, eliminating the evaluation
+    # warnings. Semantics are identical for submodule element types.
     type = types.submodule {
-      freeformType = types.attrsOf featureType;
+      freeformType = types.lazyAttrsOf featureType;
       options = {
         users = mkOption {
           type    = types.attrsOf userType;
