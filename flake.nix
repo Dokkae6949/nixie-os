@@ -12,10 +12,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    den.url = "github:vic/den";
     import-tree.url = "github:vic/import-tree";
-
-    flake-aspects.url = "github:vic/flake-aspects";
     flake-parts = {
       url = "github:hercules-ci/flake-parts";
       inputs.nixpkgs-lib.follows = "nixpkgs-lib";

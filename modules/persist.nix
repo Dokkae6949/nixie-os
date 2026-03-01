@@ -1,39 +1,40 @@
-{ lib, den, inputs, ... }:
+{ lib, inputs, ... }:
 
-let
-  persist = { class, aspect-chain }: den._.forward {
-    each = lib.singleton true;
-    fromClass = _: "persist";
-    intoClass = _: class;
-    intoPath = _: [ "environment" "persistence" "/.persist" ];
-    fromAspect = _: lib.head aspect-chain;
-    guard = { options, ... }: options ? environment.persistence;
-  };
-in
 {
-  nixi.aspects.persist = {
-    includes = [ persist ];
+  nixie.persist = {
+    description = "impermanence (ephemeral root)";
 
-    nixos = { lib, ... }: {
+    options = {
+      directories = lib.mkOption {
+        type        = lib.types.listOf lib.types.str;
+        default     = [ ];
+        description = "Extra directories to persist across reboots.";
+      };
+
+      files = lib.mkOption {
+        type        = lib.types.listOf lib.types.str;
+        default     = [ ];
+        description = "Extra files to persist across reboots.";
+      };
+    };
+
+    nixos = { config, lib, ... }: {
       imports = [ inputs.impermanence.nixosModules.impermanence ];
+
+      fileSystems."/.persist".neededForBoot = lib.mkDefault true;
 
       environment.persistence."/.persist" = {
         hideMounts = true;
 
         directories = [
           "/etc/nixos"
-          "/etc/NetworkManager/system-connections"
-
           "/var/lib/nixos"
-        ];
+        ] ++ config.nixie.persist.directories;
 
         files = [
           "/etc/machine-id"
-        ];
+        ] ++ config.nixie.persist.files;
       };
-
-      # Make sure persisted storage is available before consumers use it.
-      fileSystems."/.persist".neededForBoot = lib.mkDefault true;
     };
   };
 }

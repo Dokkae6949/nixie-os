@@ -1,36 +1,31 @@
-{ __findFile, ... }:
+{ lib, ... }:
 
 {
-  den.hosts.x86_64-linux.shiina.users.kurisu = { };
+  nixie.users.kurisu = {
+    nixos = { config, lib, pkgs, ... }: {
+      sops.secrets = {
+        "users/kurisu/password_hash" = {
+          sopsFile       = ../../../secrets/users/kurisu.yaml;
+          neededForUsers = true;
+        };
 
-  den.aspects.kurisu = {
-    includes = [
-    ];
-
-    nixos = { pkgs, config, ... }: {
-      sops.secrets."users/kurisu/password_hash" = {
-        sopsFile = ../../../secrets/users/kurisu.yaml;
-        neededForUsers = true;
-      };
-
-      sops.secrets."users/kurisu/ssh/id_ed25519" = {
-        sopsFile = ../../../secrets/users/kurisu.yaml;
+        "users/kurisu/ssh/id_ed25519" = {
+          sopsFile = ../../../secrets/users/kurisu.yaml;
+        };
       };
 
       users.mutableUsers = false;
       users.users.kurisu = {
         isNormalUser = true;
         hashedPasswordFile = config.sops.secrets."users/kurisu/password_hash".path;
-
         shell = pkgs.fish;
-
         extraGroups = [ "wheel" ];
       };
 
-      programs.fish.enable = true;
+      programs.fish.enable = lib.mkDefault true;
     };
 
-    homeManager = { pkgs, ... }: {
+    home = { pkgs, ... }: {
       home.packages = with pkgs; [
         htop
         helix

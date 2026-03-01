@@ -1,27 +1,31 @@
 { inputs, ... }:
+
 let
-  sops_config = {
-    defaultSopsFile = ../secrets/default.yaml;
+  sopsConfig = {
+    defaultSopsFile   = ../secrets/default.yaml;
     defaultSopsFormat = "yaml";
-    age.keyFile = "/var/lib/sops/age/keys.txt";
+    age.keyFile       = "/var/lib/sops/age/keys.txt";
   };
 in
 {
-  nixi.secrets = {
-    nixos = {
+  nixie.secrets = {
+    description = "sops-nix secret management";
+
+    nixos = { ... }: {
       imports = [ inputs.sops-nix.nixosModules.sops ];
-      sops = sops_config;
+
+      sops = sopsConfig;
+
+      # Persist the sops age key across ephemeral reboots.
+      nixie.persist.directories = [ "/var/lib/sops" ];
     };
 
-    homeManager = { pkgs, ... }: {
+    home = { pkgs, ... }: {
       imports = [ inputs.sops-nix.homeManagerModules.sops ];
-      sops = sops_config;
+
+      sops = sopsConfig;
 
       home.packages = [ pkgs.sops ];
     };
   };
-
-  nixi.persist.directories = [
-    "/var/lib/sops"
-  ];
 }
