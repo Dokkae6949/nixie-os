@@ -2,9 +2,18 @@
 
 {
   nixie.hosts.shiina = {
-    system   = "x86_64-linux";
-    features = [ "battery" "keyboard" "network" "niri" "persist" "secrets" ];
-    users    = [ "kurisu" ];
+    system = "x86_64-linux";
+    users = [ "kurisu" ];
+    features = [
+      "battery"
+      "keyboard"
+      "network"
+      "niri"
+      "persist"
+      "secrets"
+      "sudo"
+    ];
+
 
     nixos = { config, ... }: {
       imports = [
