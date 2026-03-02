@@ -32,6 +32,14 @@
       ];
 
       programs.fish.enable = true;
+      programs.git = {
+        enable = true;
+
+        settings = {
+          user.email = "finnliry@gmail.com";
+          user.name = "Dokkae6949";
+        };
+      };
     };
   };
 }

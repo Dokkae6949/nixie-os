@@ -18,6 +18,7 @@
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 
   networking.useDHCP = lib.mkDefault true;
+  networking.hostName = lib.mkDefault "shiina";
 
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }
