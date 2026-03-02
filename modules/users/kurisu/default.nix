@@ -31,7 +31,13 @@
         helix
       ];
 
-      programs.fish.enable = true;
+      programs.fish = {
+        enable = true;
+
+        shellInit = ''
+          set fish_greeting
+        '';
+      };
       programs.git = {
         enable = true;
 
