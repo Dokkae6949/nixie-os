@@ -17,9 +17,24 @@
         package = pkgs.niri-unstable;
       };
 
+      environment.systemPackages = with pkgs; [
+        alacritty
+        brightnessctl
+      ];
+
       environment.sessionVariables = {
         NIXOS_OZONE_WL = "1";
         ELECTRON_OZONE_PLATFORM_HINT = "auto";
+      };
+    };
+
+    home = { pkgs, ... }: {
+      home.pointerCursor = {
+        gtk.enable = true;
+        x11.enable = true;
+        package = pkgs.bibata-cursors;
+        name = "Bibata-Modern-Classic";
+        size = 24;
       };
     };
   };
