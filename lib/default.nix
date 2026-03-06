@@ -17,6 +17,7 @@
 #
 # User API:
 #   nixie.users.<name> = {
+#     features = [ "firefox" "secrets" ];  # feature modules activated for this user only
 #     nixos = { ... };  # NixOS module for this user (use lib.mkDefault for host-overridable values)
 #     home  = { ... };  # home-manager module for this user
 #   };
@@ -76,6 +77,15 @@ let
   # User type — nixos is treated as defaults (use lib.mkDefault), home is user-specific.
   userType = types.submodule {
     options = {
+      features = mkOption {
+        type    = types.listOf types.str;
+        default = [ ];
+        description = ''
+          Feature names (from nixie.<name>) to activate for this user.
+          Feature nixos modules are included system-wide when the user is enrolled in a host;
+          feature home modules are applied only to this user's home-manager config.
+        '';
+      };
       nixos = mkOption {
         type    = types.nullOr types.raw;
         default = null;
@@ -185,8 +195,27 @@ let
         lib.optional (u.nixos != null) u.nixos
       ) hostUsers);
 
-      # Per-user home-manager configs (wired to home-manager.users.<name>).
-      userHomes = lib.filterAttrs (_: u: u.home != null) hostUsers;
+      # Return only the features activated by a single user.
+      getUserActiveFeatures = u:
+        lib.filterAttrs (n: _: lib.elem n u.features) features;
+
+      # NixOS modules from per-user features — collected across all enrolled users.
+      userFeatNixos = lib.concatLists (lib.mapAttrsToList (_: u:
+        mkNixosModules (getUserActiveFeatures u)
+      ) hostUsers);
+
+      # Per-user home-manager configs — merges user.home with user feature home modules.
+      userHomes =
+        let
+          mkUserHomeModule = _name: u:
+            let
+              userFeatHome = mkHomeModules (getUserActiveFeatures u);
+              allMods      = userFeatHome ++ lib.optional (u.home != null) u.home;
+            in
+            if allMods == [] then null
+            else { imports = allMods; };
+        in
+        lib.filterAttrs (_: m: m != null) (lib.mapAttrs mkUserHomeModule hostUsers);
 
       hmModule = { lib, ... }: {
         imports = [ inputs.home-manager.nixosModules.home-manager ];
@@ -199,7 +228,7 @@ let
             featHome
             ++ lib.optional (hostCfg.home != null) hostCfg.home;
           # Per-user home configs take full priority over sharedModules.
-          users = lib.mapAttrs (_: u: u.home) userHomes;
+          users = userHomes;
         };
       };
     in
@@ -211,6 +240,7 @@ let
         ++ [ hmModule ]
         ++ featNixos
         ++ userNixos                                              # user nixos (defaults)
+        ++ userFeatNixos                                          # user-feature nixos modules
         ++ lib.optional (hostCfg.nixos != null) hostCfg.nixos    # host nixos (authoritative)
         ++ hostCfg.extraModules;
     };
