@@ -30,6 +30,7 @@
     home = { pkgs, ... }: {
       home.packages = with pkgs; [
         htop
+        zellij
       ];
 
       programs.helix = {
