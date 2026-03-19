@@ -24,6 +24,8 @@
         ./_config
       ];
 
+      nixpkgs.config.allowUnfree = true;
+
       sops.secrets."hosts/shiina/ssh/host_ed25519_key" = {
         sopsFile = ../../../secrets/hosts/shiina.yaml;
       };

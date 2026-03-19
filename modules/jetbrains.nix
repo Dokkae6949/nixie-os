@@ -1,12 +1,17 @@
-{ ... }:
+{ inputs, ... }:
 
 {
   nixie.jetbrains= {
     description = "JetBrains IDEs";
 
     home = { pkgs, ... }: {
-      home.packages = [
-        (pkgs.jetbrains.plugins.addPlugins pkgs.jetbrains.idea ["github-copilot"])
+      home.packages = let
+        inherit (pkgs.jetbrains) idea;
+        plugins = inputs.nix-jetbrains-plugins.lib.pluginsForIde pkgs idea [
+          "com.github.copilot"
+        ];
+      in [
+        (pkgs.jetbrains.plugins.addPlugins idea (lib.attrValues plugins))
       ];
     };
   };
