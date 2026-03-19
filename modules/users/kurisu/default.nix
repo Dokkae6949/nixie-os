@@ -2,6 +2,8 @@
 
 {
   nixie.users.kurisu = {
+    features = [ "firefox" ];
+    
     nixos = { config, lib, pkgs, ... }: {
       sops.secrets = {
         "users/kurisu/password_hash" = {

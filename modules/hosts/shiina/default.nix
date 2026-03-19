@@ -5,10 +5,13 @@
     system = "x86_64-linux";
     users = [ "kurisu" ];
     features = [
+      "niri"
+      "postgresql"
+
       "battery"
       "keyboard"
       "network"
-      "niri"
+
       "persist"
       "secrets"
       "sudo"
