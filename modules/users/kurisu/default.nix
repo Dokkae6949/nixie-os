@@ -2,7 +2,7 @@
 
 {
   nixie.users.kurisu = {
-    features = [ "firefox" "jetbrains" ];
+    features = [ "firefox" "jetbrains" "direnv" ];
     
     nixos = { config, lib, pkgs, ... }: {
       sops.secrets = {
@@ -30,9 +30,21 @@
     home = { pkgs, ... }: {
       home.packages = with pkgs; [
         htop
-        helix
       ];
 
+      programs.helix = {
+        enable = true;
+        defaultEditor = true;
+
+        settings = {
+          theme = "term16_dark";
+
+          editor = {
+            line-number = "relative";
+            text-width = 100;
+          };
+        };
+      };
       programs.fish = {
         enable = true;
 
