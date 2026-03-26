@@ -12,7 +12,7 @@
     };
 
     kernelModules = [ "kvm-intel"];
-    kernelParams = [ "psmouse.synaptics_intertouch=1" ];
+    kernelParams = [ ];
     extraModulePackages = [ ];
   };
 
@@ -22,17 +22,6 @@
   networking.hostName = lib.mkDefault "shiina";
 
   services.fwupd.enable = true;
-
-  systemd.services.trackpad-fix = {
-    description = "Reload psmouse module for trackpad fix";
-    after = [ "multi-user.target" ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = "${pkgs.bash}/bin/bash -c '${pkgs.kmod}/bin/rmmod psmouse && ${pkgs.kmod}/bin/modprobe psmouse'";
-      RemainAfterExit = true;
-    };
-  };
 
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }
