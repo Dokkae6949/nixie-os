@@ -18,6 +18,8 @@
       };
 
       environment.systemPackages = with pkgs; [
+        rofi
+        waybar
         alacritty
         brightnessctl
       ];
