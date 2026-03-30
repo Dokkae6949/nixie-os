@@ -10,6 +10,8 @@
         "time.cloudflare.com"
         "time.google.com"
       ];
+
+      services.automatic-timezoned.enable = true;
     };
   };
 }

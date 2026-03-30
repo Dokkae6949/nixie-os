@@ -2,7 +2,7 @@
 
 {
   nixie.users.kurisu = {
-    features = [ "firefox" "jetbrains" "direnv" "fonts" ];
+    features = [ "firefox" "jetbrains" "direnv" "fonts" "discord" "spotify" ];
     
     nixos = { config, lib, pkgs, ... }: {
       sops.secrets = {
