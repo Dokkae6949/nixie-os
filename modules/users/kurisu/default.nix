@@ -38,7 +38,7 @@
         defaultEditor = true;
 
         settings = {
-          theme = "term16_dark";
+          theme = "gruvbox";
 
           editor = {
             line-number = "relative";

@@ -11,6 +11,7 @@
       "battery"
       "keyboard"
       "network"
+      "time"
 
       "persist"
       "secrets"
