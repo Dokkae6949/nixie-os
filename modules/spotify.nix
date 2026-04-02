@@ -1,12 +1,17 @@
-{ ... }:
+{ inputs, ... }:
 
 {
   nixie.spotify = {
     description = "music listening service client application";
 
     home = { pkgs, ... }: {
-      programs.spotify = {
+      imports = [inputs.spicetify-nix.homeManagerModules.default];
+
+      programs.spicetify = let
+        spicePkgs = inputs.spicetify-nix.legacyPackages.${pkgs.stdenv.hostPlatform.system};
+      in {
         enable = true;
+        theme = spicePkgs.themes.onepunch;
       };
     };
   };

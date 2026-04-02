@@ -16,6 +16,7 @@
 
       home.packages = with inputs.nix-jetbrains-plugins.lib; [
         (buildIdeWithPlugins pkgs "idea" ["com.github.copilot"])
+        (buildIdeWithPlugins pkgs "datagrip" ["com.github.copilot"])
       ];
     };
   };

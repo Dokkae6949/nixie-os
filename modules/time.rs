@@ -5,13 +5,9 @@
     description = "time server configuration";
 
     nixos = { inputs, pkgs, ... }: {
-      networking.timeServers = [
-        "pool.ntp.org"
-        "time.cloudflare.com"
-        "time.google.com"
-      ];
-
+      services.timesyncd.enable = true;
       services.automatic-timezoned.enable = true;
+      services.geoclue2.enable = true;
     };
   };
 }
