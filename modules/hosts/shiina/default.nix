@@ -16,6 +16,7 @@
       "persist"
       "secrets"
       "sudo"
+      "docker"
     ];
 
 

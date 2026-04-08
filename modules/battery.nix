@@ -5,7 +5,8 @@
     description = "battery management (upower)";
 
     nixos = { ... }: {
-      services.upower.enable = true;
+      # Causes issues with dual batteries.
+      # services.upower.enable = true;
 
       services.tlp = {
         enable = true;

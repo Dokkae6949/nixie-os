@@ -21,7 +21,7 @@
         isNormalUser = true;
         hashedPasswordFile = config.sops.secrets."users/kurisu/password_hash".path;
         shell = pkgs.fish;
-        extraGroups = [ "wheel" ];
+        extraGroups = [ "wheel" "docker" ];
       };
 
       programs.fish.enable = lib.mkDefault true;

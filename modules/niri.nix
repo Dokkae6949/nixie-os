@@ -22,6 +22,10 @@
         waybar
         alacritty
         brightnessctl
+        playerctl
+
+        wl-clipboard
+        cliphist
       ];
 
       environment.sessionVariables = {
