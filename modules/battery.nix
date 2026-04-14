@@ -21,7 +21,7 @@
           CPU_MAX_PERF_ON_AC = 100;
 
           # BAT = balanced
-          CPU_BOOST_ON_BAT = 0;
+          CPU_BOOST_ON_BAT = 1;
           CPU_HWP_DYN_BOOST_ON_BAT = 1;
           CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
           CPU_ENERGY_PERF_POLICY_ON_BAT = "balance_power";
@@ -32,7 +32,7 @@
           CPU_HWP_DYN_BOOST_ON_SAV = 0;
           CPU_SCALING_GOVERNOR_ON_SAV = "powersave";
           CPU_ENERGY_PERF_POLICY_ON_SAV = "power";
-          CPU_MAX_PERF_ON_SAV = 70;
+          CPU_MAX_PERF_ON_SAV = 60;
 
           # Battery thresholds
           STOP_CHARGE_THRESH_BAT0 = 85;

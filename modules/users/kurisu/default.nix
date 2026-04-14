@@ -2,7 +2,7 @@
 
 {
   nixie.users.kurisu = {
-    features = [ "firefox" "jetbrains" "direnv" "fonts" "discord" "spotify" ];
+    features = [ "firefox" "jetbrains" "direnv" "fonts" "discord" "spotify" "helix" ];
     
     nixos = { config, lib, pkgs, ... }: {
       sops.secrets = {
@@ -33,19 +33,6 @@
         zellij
       ];
 
-      programs.helix = {
-        enable = true;
-        defaultEditor = true;
-
-        settings = {
-          theme = "gruvbox";
-
-          editor = {
-            line-number = "relative";
-            text-width = 100;
-          };
-        };
-      };
       programs.fish = {
         enable = true;
 
