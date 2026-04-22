@@ -15,7 +15,7 @@
           editor = {
             line-number = "relative";
             text-width = 100;
-            complection-timeout = 10;
+            completion-timeout = 10;
           };
         };
       };
