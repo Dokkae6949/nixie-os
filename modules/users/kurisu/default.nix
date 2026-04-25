@@ -11,6 +11,7 @@
       "discord"
       "spotify"
       "helix"
+      "shell"
     ];
     
     nixos = { config, lib, pkgs, ... }: {
@@ -42,13 +43,6 @@
         zellij
       ];
 
-      programs.fish = {
-        enable = true;
-
-        shellInit = ''
-          set fish_greeting
-        '';
-      };
       programs.git = {
         enable = true;
 

@@ -4,9 +4,9 @@
   nixie.helium = {
     description = "lightweight chromium browser";
 
-    home = { ... }: {
+    home = { pkgs, ... }: {
       home.packages = [
-        inputs.helium.packages.${system}.default
+        inputs.helium.packages.${pkgs.stdenv.hostPlatform.system}.default
       ];
     };
   };
