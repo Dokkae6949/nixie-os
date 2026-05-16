@@ -2,8 +2,6 @@
 
 {
   nixie.firefox= {
-    description = "firefox browser";
-
     nixos = { ... }: { };
 
     home = { ... }: {

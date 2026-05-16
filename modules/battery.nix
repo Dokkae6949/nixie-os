@@ -2,8 +2,6 @@
 
 {
   nixie.battery = {
-    description = "battery management (upower)";
-
     nixos = { ... }: {
       # Causes issues with dual batteries.
       # services.upower.enable = true;

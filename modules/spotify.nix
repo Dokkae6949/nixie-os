@@ -2,8 +2,6 @@
 
 {
   nixie.spotify = {
-    description = "music listening service client application";
-
     home = { pkgs, ... }: {
       imports = [inputs.spicetify-nix.homeManagerModules.default];
 

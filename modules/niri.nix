@@ -2,8 +2,6 @@
 
 {
   nixie.niri = {
-    description = "niri Wayland compositor";
-
     nixos = { inputs, pkgs, ... }: {
       nixpkgs.overlays = [ inputs.niri.overlays.niri ];
 

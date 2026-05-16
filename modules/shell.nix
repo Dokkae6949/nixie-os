@@ -2,8 +2,6 @@
 
 {
   nixie.shell= {
-    description = "shell configuration";
-
     home = { ... }: {
       programs.eza.enable = true;
       

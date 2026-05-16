@@ -2,8 +2,6 @@
 
 {
   nixie.jetbrains= {
-    description = "JetBrains IDEs";
-
     home = { lib, pkgs, ... }: {
       # home.packages = let
       #   inherit (pkgs.jetbrains) idea;

@@ -2,8 +2,6 @@
 
 {
   nixie.fonts = {
-    description = "essential and common fonts";
-
     home = { pkgs, ... }: {
       fonts.fontconfig.enable = true;
 

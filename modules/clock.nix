@@ -1,9 +1,7 @@
 { ... }:
 
 {
-  nixie.clock= {
-    description = "time sync configuration";
-
+  nixie.clock = {
     nixos = { ... }: {
       services.automatic-timezoned.enable = true;
     };

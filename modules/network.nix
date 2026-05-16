@@ -2,8 +2,6 @@
 
 {
   nixie.network = {
-    description = "NetworkManager networking";
-
     nixos = { ... }: {
       networking.networkmanager = {
         enable = true;

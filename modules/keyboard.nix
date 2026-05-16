@@ -2,8 +2,6 @@
 
 {
   nixie.keyboard = {
-    description = "keyboard remapping (keyd)";
-
     nixos = { ... }: {
       console.useXkbConfig = true;
 

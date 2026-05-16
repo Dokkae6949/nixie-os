@@ -3,21 +3,21 @@
 {
   nixie.hosts.shiina = {
     system = "x86_64-linux";
-    users = [ "kurisu" ];
-    features = [
-      "niri"
-      "postgresql"
+    users.kurisu = {};
+    features = {
+      niri = {};
+      postgresql = {};
 
-      "battery"
-      "keyboard"
-      "network"
-      "clock"
+      battery = {};
+      keyboard = {};
+      network = {};
+      clock = {};
 
-      "persist"
-      "secrets"
-      "sudo"
-      "docker"
-    ];
+      persist = {};
+      secrets = {};
+      sudo = {};
+      docker = {};
+    };
 
 
     nixos = { config, ... }: {

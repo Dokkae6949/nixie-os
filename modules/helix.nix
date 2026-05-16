@@ -2,8 +2,6 @@
 
 {
   nixie.helix = {
-    description = "terminal editor similar to vim";
-
     home = { ... }: {
       programs.helix = {
         enable = true;

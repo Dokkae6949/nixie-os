@@ -2,8 +2,6 @@
 
 {
   nixie.persist = {
-    description = "impermanence (ephemeral root)";
-
     options = {
       directories = lib.mkOption {
         type        = lib.types.listOf lib.types.str;
@@ -18,22 +16,38 @@
       };
     };
 
-    nixos = { config, lib, ... }: {
+    nixos = { cfg, config, lib, ... }: {
       imports = [ inputs.impermanence.nixosModules.impermanence ];
 
-      fileSystems."/.persist".neededForBoot = lib.mkDefault true;
+      options.nixie.persist = {
+        directories = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [];
+        };
+        files = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [];
+        };
+      };
 
-      environment.persistence."/.persist" = {
-        hideMounts = true;
+      config = {
+        nixie.persist.directories = cfg.directories;
+        nixie.persist.files = cfg.files;
 
-        directories = [
-          "/etc/nixos"
-          "/var/lib/nixos"
-        ] ++ config.nixie.persist.directories;
+        fileSystems."/.persist".neededForBoot = lib.mkDefault true;
 
-        files = [
-          "/etc/machine-id"
-        ] ++ config.nixie.persist.files;
+        environment.persistence."/.persist" = {
+          hideMounts = true;
+
+          directories = [
+            "/etc/nixos"
+            "/var/lib/nixos"
+          ] ++ config.nixie.persist.directories;
+
+          files = [
+            "/etc/machine-id"
+          ] ++ config.nixie.persist.files;
+        };
       };
     };
   };

@@ -9,8 +9,6 @@ let
 in
 {
   nixie.secrets = {
-    description = "sops-nix secret management";
-
     nixos = { ... }: {
       imports = [ inputs.sops-nix.nixosModules.sops ];
 

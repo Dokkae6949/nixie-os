@@ -1,19 +1,40 @@
-{ lib, ... }:
+{ ... }:
 
 {
   nixie.users.kurisu = {
-    features = [
-      "helium"
-      "firefox"
-      "jetbrains"
-      "direnv"
-      "fonts"
-      "discord"
-      "spotify"
-      "helix"
-      "shell"
-    ];
+    uid = 1000;
+    groups = [ "wheel" "docker" ];
+
+    profiles.default = {
+      features = {
+        helium = {};
+        firefox = {};
+        jetbrains = {};
+        direnv = {};
+        fonts = {};
+        discord = {};
+        spotify = {};
+        helix = {};
+        shell = {};
+      };
     
+      home = { pkgs, ... }: {
+        home.packages = with pkgs; [
+          htop
+          zellij
+        ];
+
+        programs.git = {
+          enable = true;
+
+          settings = {
+            user.email = "finnliry@gmail.com";
+            user.name = "Dokkae6949";
+          };
+        };
+      };
+    };
+
     nixos = { config, lib, pkgs, ... }: {
       sops.secrets = {
         "users/kurisu/password_hash" = {
@@ -27,30 +48,9 @@
       };
 
       users.mutableUsers = false;
-      users.users.kurisu = {
-        isNormalUser = true;
-        hashedPasswordFile = config.sops.secrets."users/kurisu/password_hash".path;
-        shell = pkgs.fish;
-        extraGroups = [ "wheel" "docker" ];
-      };
-
+      users.users.kurisu.hashedPasswordFile = config.sops.secrets."users/kurisu/password_hash".path;
+      users.users.kurisu.shell = pkgs.fish;
       programs.fish.enable = lib.mkDefault true;
-    };
-
-    home = { pkgs, ... }: {
-      home.packages = with pkgs; [
-        htop
-        zellij
-      ];
-
-      programs.git = {
-        enable = true;
-
-        settings = {
-          user.email = "finnliry@gmail.com";
-          user.name = "Dokkae6949";
-        };
-      };
     };
   };
 }
