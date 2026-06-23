@@ -20,7 +20,7 @@
     };
 
 
-    nixos = { config, ... }: {
+    nixos = { config, pkgs, ... }: {
       imports = [
         inputs.disko.nixosModules.disko
         ./_config
@@ -39,6 +39,37 @@
       ];
 
       services.throttled.enable = true;
+
+      programs.nix-ld = {
+        enable = true;
+        libraries = with pkgs; [
+          stdenv.cc.cc
+          zlib
+          glib
+          nss
+          nspr
+          dbus
+          atk
+          at-spi2-atk
+          cups
+          gtk3
+          pango
+          cairo
+          expat
+          libxkbcommon
+          libdrm
+          libgbm
+          mesa
+          alsa-lib
+          xorg.libX11
+          xorg.libXcomposite
+          xorg.libXdamage
+          xorg.libXext
+          xorg.libXfixes
+          xorg.libXrandr
+          xorg.libxcb
+        ];
+      };
 
       nix = let
         flakeInputs = lib.filterAttrs (_: lib.isType "flake") inputs;
