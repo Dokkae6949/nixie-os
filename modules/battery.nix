@@ -3,8 +3,7 @@
 {
   nixie.battery = {
     nixos = { ... }: {
-      # Causes issues with dual batteries.
-      # services.upower.enable = true;
+      services.upower.enable = true;
 
       services.tlp = {
         enable = true;
