@@ -16,6 +16,7 @@
         spotify = {};
         helix = {};
         shell = {};
+        email = {};
       };
     
       home = { pkgs, inputs, ... }: {
