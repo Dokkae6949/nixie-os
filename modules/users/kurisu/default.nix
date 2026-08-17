@@ -18,10 +18,11 @@
         shell = {};
       };
     
-      home = { pkgs, ... }: {
+      home = { pkgs, inputs, ... }: {
         home.packages = with pkgs; [
           htop
           zellij
+          inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default
         ];
 
         programs.git = {

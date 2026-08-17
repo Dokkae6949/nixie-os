@@ -11,9 +11,13 @@
       kernelModules = [ ];
     };
 
-    kernelModules = [ "kvm-intel"];
+    kernelModules = [ "kvm-intel" ];
     kernelParams = [ ];
     extraModulePackages = [ ];
+
+    extraModprobeConfig = ''
+      options thinkpad_acpi bluetooth_switch_emulation=1
+    '';
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
