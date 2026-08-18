@@ -38,9 +38,7 @@
     },
     "flake-parts": {
       "inputs": {
-        "nixpkgs-lib": [
-          "nixpkgs-lib"
-        ]
+        "nixpkgs-lib": "nixpkgs-lib"
       },
       "locked": {
         "lastModified": 1785627969,
@@ -224,6 +222,21 @@
         "type": "github"
       }
     },
+    "nixpkgs-lib": {
+      "locked": {
+        "lastModified": 1786841782,
+        "narHash": "sha256-auVxpg6qxDnBG7bhSgqcolnbzsNfYvUNTyvOZJoHcrY=",
+        "owner": "nix-community",
+        "repo": "nixpkgs.lib",
+        "rev": "6c072ec3b5c474f370866628582bb6533fe6f822",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "nixpkgs.lib",
+        "type": "github"
+      }
+    },
     "nixpkgs-stable": {
       "locked": {
         "lastModified": 1782847189,
@@ -300,9 +313,6 @@
         "import-tree": "import-tree",
         "niri": "niri",
         "nixpkgs": "nixpkgs_2",
-        "nixpkgs-lib": [
-          "nixpkgs"
-        ],
         "quickshell": "quickshell",
         "sops-nix": "sops-nix",
         "spicetify-nix": "spicetify-nix"
