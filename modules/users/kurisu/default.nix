@@ -9,7 +9,6 @@
       features = {
         helium = {};
         firefox = {};
-        jetbrains = {};
         direnv = {};
         fonts = {};
         discord = {};
