@@ -5,5 +5,6 @@
     persistence
     networkPersistence
     secretsPersistence
+    tailscalePersistence
   ];
 }

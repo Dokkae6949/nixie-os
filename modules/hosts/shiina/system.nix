@@ -4,6 +4,13 @@
       sopsFile = ../../../secrets/hosts/shiina.yaml;
     };
 
+    sops.secrets."hosts/shiina/tailscale/auth_key" = {
+      sopsFile = ../../../secrets/hosts/shiina.yaml;
+    };
+
+    services.tailscale.authKeyFile =
+      config.sops.secrets."hosts/shiina/tailscale/auth_key".path;
+
     services.openssh.hostKeys = [
       {
         path = config.sops.secrets."hosts/shiina/ssh/host_ed25519_key".path;

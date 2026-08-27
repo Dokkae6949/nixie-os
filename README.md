@@ -237,11 +237,66 @@ Impermanence is opt-in. The `impermanent` profile imports:
 
 - the base persistence feature, which imports the upstream impermanence module;
 - NetworkManager's persistence integration;
-- sops' persistent key integration.
+- sops' persistent key integration;
+- Tailscale's node identity, ready for hosts that select the Tailscale feature.
 
 Those integration modules are deferred. A host that does not select the
 `impermanent` profile does not evaluate `environment.persistence` and does not
 need the upstream impermanence module.
+
+## Tailscale
+
+Tailscale is an opt-in NixOS feature. Add `tailscale` to the NixOS module list
+in a host's `configuration.nix`:
+
+```nix
+modules = with config.flake.modules.nixos; [
+  base
+  tailscale
+  # profiles, user, and host modules ...
+];
+```
+
+For an interactive enrollment, deploy the configuration and run this once:
+
+```console
+sudo tailscale up
+```
+
+The node identity in `/var/lib/tailscale` survives reboots. The `impermanent`
+profile persists that directory automatically.
+
+For unattended enrollment, generate a one-off auth key for each persistent
+host and store it in that host's SOPS file. For example, add this value to
+`secrets/hosts/shiina.yaml` with `sops secrets/hosts/shiina.yaml`:
+
+```yaml
+hosts:
+  shiina:
+    tailscale:
+      auth_key: tskey-auth-...
+```
+
+Then declare the secret in the host module and pass its runtime path to the
+upstream NixOS Tailscale module:
+
+```nix
+flake.modules.nixos.shiina = { config, ... }: {
+  sops.secrets."hosts/shiina/tailscale/auth_key" = {
+    sopsFile = ../../../secrets/hosts/shiina.yaml;
+  };
+
+  services.tailscale.authKeyFile =
+    config.sops.secrets."hosts/shiina/tailscale/auth_key".path;
+};
+```
+
+The autoconnect unit uses the key only when the node needs authentication. A
+one-off key is revoked automatically after enrollment; replacing lost node
+state therefore requires generating and encrypting a fresh key. Prefer a
+tagged key for shared servers, and make it pre-approved when device approval is
+enabled. Reusable ephemeral keys are appropriate for disposable workloads such
+as CI runners and containers, not ordinary persistent hosts.
 
 ## Common commands
 

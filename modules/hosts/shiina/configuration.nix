@@ -12,6 +12,7 @@
       desktop
       development
       impermanent
+      tailscale
       kurisu
       shiina
 
