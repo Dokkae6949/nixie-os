@@ -9,6 +9,7 @@
 
   flake.modules.homeManager.desktop.imports = with config.flake.modules.homeManager; [
     discord
+    matrix
     email
     firefox
     fonts
