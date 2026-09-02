@@ -2,6 +2,7 @@
 
 {
   flake.modules.nixos.desktop.imports = with config.flake.modules.nixos; [
+    gnome-keyring
     keyboard
     niri
     unfree
