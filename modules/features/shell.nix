@@ -4,6 +4,11 @@
   flake.modules.homeManager.shell = {
     programs.eza.enable = true;
 
+    programs.starship = {
+      enable = true;
+      enableFishIntegration = true;
+    };
+
     programs.fish = {
       enable = true;
       shellInit = "set fish_greeting";
