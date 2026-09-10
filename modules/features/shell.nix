@@ -14,10 +14,10 @@
       shellInit = "set fish_greeting";
 
       shellAliases = {
-        l = "eza -l --all --color=always --icons=always --git";
-        ll = "eza -l --color=always --icons=always --git";
-        ls = "eza --grid --color=always --icons=always";
-        lt = "eza --tree -l --color=always --icons=always --git";
+        l = "eza -l --all --color=always --icons=always --git --group-directories-first";
+        ll = "eza -l --color=always --icons=always --git --group-directories-first";
+        ls = "eza --grid --color=always --icons=always --group-directories-first";
+        lt = "eza --tree -l --color=always --icons=always --git --group-directories-first";
       };
     };
   };
